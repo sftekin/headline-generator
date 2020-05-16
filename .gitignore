@@ -1,0 +1,14 @@
+.idea
+.coverage
+
+data/*
+!data/.gitkeep
+
+embedding/*
+!embedding/.gitkeep
+
+results/*
+!results/.gitkeep
+
+figures/*
+!figures/.gitkeep
