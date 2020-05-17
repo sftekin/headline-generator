@@ -11,7 +11,7 @@ eng_stopwords = set(stopwords.words('english'))
 
 
 class Preprocess:
-    def __init__(self, content_len=None, title_len=None):
+    def __init__(self, content_len, title_len):
         self.content_len = content_len
         self.title_len = title_len
         self.tokenizer = TweetTokenizer()
@@ -74,10 +74,17 @@ class Preprocess:
         # lower every word
         tokens = [token.lower() for token in tokens]
 
-        # trim tokens
-        if self.content_len and self.title_len:
-            if mode == 'title':
+        # pad or trim the tokens according to their sizes
+        if mode == 'title':
+            if len(tokens) < self.title_len:
+                pad_size = self.title_len - len(tokens)
+                tokens += ['<pad>' for _ in range(pad_size)]
+            else:
                 tokens = tokens[:self.title_len+1]
+        else:
+            if len(tokens) < self.content_len:
+                pad_size = self.title_len - len(tokens)
+                tokens += ['<pad>' for _ in range(pad_size)]
             else:
                 tokens = tokens[:self.content_len+1]
 

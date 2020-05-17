@@ -6,6 +6,7 @@ import pickle as pkl
 from collections import Counter
 from transformers.preprocessing import Preprocess
 from transformers.summarizer import Summarizer
+from transformers.summary_selector import SummarySelector
 
 
 class LoadData:
@@ -35,6 +36,10 @@ class LoadData:
                 self.word2int, self.int2word = pkl.load(f)
             with open(self.summary_path, 'rb') as f:
                 self.summaries, self.titles = pkl.load(f)
+
+        # select one of the summaries from candidates
+        selector = SummarySelector(self.word2int, self.int2word)
+        self.summaries, self.titles = selector.transform(self.summaries, self.titles)
 
         # split test train validation
         self.data_dict, self.label_dict = self.__split_data()
@@ -94,7 +99,7 @@ class LoadData:
         with open(self.vocab_path, 'wb') as f:
             pkl.dump([word2int, int2word], f)
 
-        return summary_content, summary_label, word2int, int2word
+        return sum_con_int, sum_label_int, word2int, int2word
 
     def __create_vocab(self, contents, titles):
         # create_vocab
