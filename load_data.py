@@ -15,7 +15,7 @@ class LoadData:
         self.vocab_path = os.path.join(dataset_path, 'vocab.pkl')
         self.raw_data_path = os.path.join(dataset_path, 'all-the-news')
 
-        self.content_len = data_params.get('content_len', 200)
+        self.content_len = data_params.get('content_len', 50)
         self.title_len = data_params.get('title_len', 15)
         self.num_samples = data_params.get('num_samples', -1)
         self.sentence_num = data_params.get('num_sentence', 3)
@@ -30,16 +30,21 @@ class LoadData:
         if not os.path.isfile(self.vocab_path) or not os.path.isfile(self.summary_path):
             print('\nCreating data ...')
             self.summaries, self.titles, self.word2int, self.int2word = self.__create_summary_set(contents, titles)
+
+            # select one of the summaries from candidates
+            print('\nSelecting summaries ...')
+            selector = SummarySelector(self.word2int, self.int2word)
+            self.summaries, self.titles = selector.transform(self.summaries, self.titles)
+
+            with open(self.summary_path, 'wb') as f:
+                pkl.dump([self.summaries, self.titles], f)
+
         else:
             print('\nLoading data from pickle ...')
             with open(self.vocab_path, 'rb') as f:
                 self.word2int, self.int2word = pkl.load(f)
             with open(self.summary_path, 'rb') as f:
                 self.summaries, self.titles = pkl.load(f)
-
-        # select one of the summaries from candidates
-        selector = SummarySelector(self.word2int, self.int2word)
-        self.summaries, self.titles = selector.transform(self.summaries, self.titles)
 
         # split test train validation
         self.data_dict, self.label_dict = self.__split_data()
@@ -92,9 +97,6 @@ class LoadData:
             title_int = [[word2int[word] for word in title] for title in summary_label[i]]
             sum_con_int.append(content_int)
             sum_label_int.append(title_int)
-
-        with open(self.summary_path, 'wb') as f:
-            pkl.dump([sum_con_int, sum_label_int], f)
 
         with open(self.vocab_path, 'wb') as f:
             pkl.dump([word2int, int2word], f)
@@ -157,9 +159,9 @@ class LoadData:
 
 if __name__ == '__main__':
     data_params = {
-        "content_len": 200,
+        "content_len": 50,
         "title_len": 15,
-        "num_samples": 1000,
+        "num_samples": 100,
         "num_sentence": 3,
         "test_ratio": 0.1,
         "val_ratio": 0.1,

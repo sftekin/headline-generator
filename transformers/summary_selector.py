@@ -7,7 +7,6 @@ class SummarySelector:
         self.int2word = int2word
 
     def transform(self, summaries, y):
-        print('Selecting summaries ...')
         idf = dict()
 
         total_word_count = 0
@@ -33,8 +32,6 @@ class SummarySelector:
 
         for candidate in candidate_corpus:
             total_word_count += len(candidate) - 6  # start end x3
-
-        print(total_word_count)
 
         chosen_summaries = []
         for num in range(len(summaries[0])):

@@ -79,14 +79,16 @@ class Preprocess:
             if len(tokens) < self.title_len:
                 pad_size = self.title_len - len(tokens)
                 tokens += ['<pad>' for _ in range(pad_size)]
-            else:
-                tokens = tokens[:self.title_len+1]
+
+            if len(tokens) > self.content_len:
+                tokens = tokens[:self.title_len]
         else:
             if len(tokens) < self.content_len:
                 pad_size = self.title_len - len(tokens)
                 tokens += ['<pad>' for _ in range(pad_size)]
-            else:
-                tokens = tokens[:self.content_len+1]
+
+            if len(tokens) > self.content_len:
+                tokens = tokens[:self.content_len]
 
         # add start end
         tokens = ['<start>'] + tokens + ['<end>']
