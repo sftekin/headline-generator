@@ -18,6 +18,7 @@ class LoadData:
         self.title_len = data_params.get('title_len', 15)
         self.num_samples = data_params.get('num_samples', -1)
         self.sentence_num = data_params.get('num_sentence', 3)
+        self.unk_threshold = data_params.get('unk_threshold', 10)
 
         self.test_ratio = data_params.get('test_ratio', 0.1)
         self.val_ratio = data_params.get('val_ratio', 0.1)
@@ -33,7 +34,7 @@ class LoadData:
             with open(self.vocab_path, 'rb') as f:
                 self.word2int, self.int2word = pkl.load(f)
             with open(self.summary_path, 'rb') as f:
-                self.articles, self.titles = pkl.load(f)
+                self.summaries, self.titles = pkl.load(f)
 
         # split test train validation
         self.data_dict, self.label_dict = self.__split_data()
@@ -95,8 +96,7 @@ class LoadData:
 
         return summary_content, summary_label, word2int, int2word
 
-    @staticmethod
-    def __create_vocab(contents, titles):
+    def __create_vocab(self, contents, titles):
         # create_vocab
         all_words = []
         for i in range(len(contents)):
@@ -104,9 +104,22 @@ class LoadData:
                 all_words += c + t
 
         vocab = Counter(all_words)
-        vocab = sorted(vocab.items(), key=lambda x: x[1], reverse=True)
+        vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
 
-        word2int = {k: v for k, v in vocab}
+        # replace the less frequent words with '<unk>'
+        for i in range(len(contents)):
+            for content, title in zip(contents[i], titles[i]):
+                for k in range(len(content)):
+                    word = content[k]
+                    if vocab[word] <= self.unk_threshold:
+                        content[k] = '<unk>'
+                for k in range(len(title)):
+                    word = title[k]
+                    if vocab[word] <= self.unk_threshold:
+                        title[k] = '<unk>'
+
+        word2int = {k: v for v, k in enumerate(vocab.keys(), 1)}
+        word2int['<unk>'] = 0
         int2word = {v: k for k, v in word2int.items()}
 
         return word2int, int2word
@@ -141,11 +154,12 @@ if __name__ == '__main__':
     data_params = {
         "content_len": 200,
         "title_len": 15,
-        "num_samples": 10,
+        "num_samples": 1000,
         "num_sentence": 3,
         "test_ratio": 0.1,
         "val_ratio": 0.1,
-        "shuffle": True
+        "shuffle": True,
+        "unk_threshold": 1
     }
     data = LoadData(dataset_path='data', **data_params)
     print()

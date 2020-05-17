@@ -48,13 +48,8 @@ class Preprocess:
             print('\r{:.2f}%'.format(count * 100 / len(X)), flush=True, end='')
             token_content = self._preprocess(str(content).lower(), mode='content')
             title_content = self._preprocess(str(title).lower(), mode='title')
-
-            if self.content_len and self.title_len:
-                clean_data.append(token_content[:self.content_len])
-                labels.append(title_content[:self.title_len])
-            else:
-                clean_data.append(token_content)
-                labels.append(title_content)
+            clean_data.append(token_content)
+            labels.append(title_content)
 
         return clean_data, labels
 
@@ -78,5 +73,15 @@ class Preprocess:
 
         # lower every word
         tokens = [token.lower() for token in tokens]
+
+        # trim tokens
+        if self.content_len and self.title_len:
+            if mode == 'title':
+                tokens = tokens[:self.title_len+1]
+            else:
+                tokens = tokens[:self.content_len+1]
+
+        # add start end
+        tokens = ['<start>'] + tokens + ['<end>']
 
         return tokens

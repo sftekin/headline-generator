@@ -43,7 +43,7 @@ class Summarizer:
                     long_content = False
 
             if long_content:
-                labels.append(y)
+                labels.append(y[count])
                 sum_collection.append(sum_list)
 
         return sum_collection, labels
