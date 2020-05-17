@@ -11,13 +11,14 @@ eng_stopwords = set(stopwords.words('english'))
 
 
 class Preprocess:
-    def __init__(self, content_len, title_len):
+    def __init__(self, content_len=None, title_len=None):
         self.content_len = content_len
         self.title_len = title_len
         self.tokenizer = TweetTokenizer()
 
         # remove url, long-mention, mention, hash-tag, numbers
-        self.re_list = [r'http\S+', r'\(@ ?[^\s].+\)', r'@ ?[^\s]+', r'# ?[^\s]+', r'[0-9]+']
+        self.re_list = [r'http\S+', r'\(@ ?[^\s].+\)', r'@ ?[^\s]+',
+                        r'# ?[^\s]+', '[{}]'.format(re.escape(string.punctuation))]
 
         # replace '- The New York Times'
         self.re_title = r'\-[a-z A-Z]+'
@@ -47,8 +48,13 @@ class Preprocess:
             print('\r{:.2f}%'.format(count * 100 / len(X)), flush=True, end='')
             token_content = self._preprocess(str(content).lower(), mode='content')
             title_content = self._preprocess(str(title).lower(), mode='title')
-            clean_data.append(token_content[:self.content_len])
-            labels.append(title_content[:self.title_len])
+
+            if self.content_len and self.title_len:
+                clean_data.append(token_content[:self.content_len])
+                labels.append(title_content[:self.title_len])
+            else:
+                clean_data.append(token_content)
+                labels.append(title_content)
 
         return clean_data, labels
 
@@ -60,7 +66,7 @@ class Preprocess:
         if mode == 'title':
             self.re_list.insert(0, self.re_title)
 
-        # remove url, long-mention, mention, hash-tag, non-textual emoji
+        # remove url, long-mention, mention, hash-tag, non-textual emoji, punctuation
         for re_op in self.re_list:
             sentence = re.sub(re_op, '', sentence)
         sentence = self.rmv_emoji(sentence)
