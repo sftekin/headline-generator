@@ -45,8 +45,8 @@ class Preprocess:
         clean_data = []
         for count, (content, title) in enumerate(zip(X, y)):
             print('\r{:.2f}%'.format(count * 100 / len(X)), flush=True, end='')
-            token_content = self._preprocess(content.lower(), mode='content')
-            title_content = self._preprocess(title.lower(), mode='title')
+            token_content = self._preprocess(str(content).lower(), mode='content')
+            title_content = self._preprocess(str(title).lower(), mode='title')
             clean_data.append(token_content[:self.content_len])
             labels.append(title_content[:self.title_len])
 
