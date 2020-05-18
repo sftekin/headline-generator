@@ -1,19 +1,15 @@
-from dataset import ImageDataset
-from torchvision import transforms
+from dataset import HeadlineDataset
 from torch.utils.data import DataLoader
 
 
 class BatchGenerator:
-    def __init__(self, data_dict, captions_int, image_addr, **kwargs):
+    def __init__(self, data_dict, label_dict, **params):
         self.data_dict = data_dict
-        self.captions_int = captions_int
-        self.image_addr = image_addr
+        self.label_dict = label_dict
 
-        self.batch_size = kwargs.get('batch_size', 16)
-        self.num_works = kwargs.get('num_works', 4)
-        self.shuffle = kwargs.get('shuffle', True)
-        self.use_transform = kwargs.get('use_transform', True)
-        self.input_size = kwargs.get("input_size", (224, 224))
+        self.batch_size = params.get('batch_size', 16)
+        self.num_works = params.get('num_works', 4)
+        self.shuffle = params.get('shuffle', True)
 
         self.dataset_dict, self.dataloader_dict = self.__create_data()
 
@@ -26,25 +22,11 @@ class BatchGenerator:
         yield from selected_loader
 
     def __create_data(self):
-        if self.use_transform:
-            im_transform = transforms.Compose([
-                transforms.Resize(self.input_size),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-            ])
-        else:
-            im_transform = None
 
         im_dataset = {}
         for i in ['test', 'train', 'validation']:
-            return_all = True if i == 'test' else False
-            im_dataset[i] = ImageDataset(image_path_names=self.data_dict[i],
-                                         captions_int=self.captions_int,
-                                         im_addr=self.image_addr,
-                                         transformer=im_transform,
-                                         return_all=return_all)
+            im_dataset[i] = HeadlineDataset(articles=self.data_dict[i],
+                                            titles=self.label_dict[i])
 
         im_loader = {}
         for i in ['test', 'train', 'validation']:

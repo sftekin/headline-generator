@@ -4,7 +4,6 @@ import string
 import nltk
 
 from nltk.tokenize import TweetTokenizer
-nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 eng_stopwords = set(stopwords.words('english'))

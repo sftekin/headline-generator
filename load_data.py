@@ -166,7 +166,7 @@ if __name__ == '__main__':
         "test_ratio": 0.1,
         "val_ratio": 0.1,
         "shuffle": True,
-        "unk_threshold": 1
+        "unk_threshold": 5
     }
     data = LoadData(dataset_path='data', **data_params)
     print()
