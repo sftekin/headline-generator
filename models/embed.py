@@ -40,3 +40,7 @@ class Embedding(nn.Module):
             vectors.append(vec)
         embed = np.stack(vectors, axis=0)
         return torch.from_numpy(embed)
+
+
+if __name__ == '__main__':
+    pass

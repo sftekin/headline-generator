@@ -22,8 +22,10 @@ class Word2VecTransformer:
             model_file = open(self.model_path, 'wb')
             pickle.dump(self.model, model_file)
 
-        self.start_vec = np.random.rand(self.vector_size)
-        self.end_vec = np.random.rand(self.vector_size)
+        self.special_tokens = ['<start>', '<end>', '<pad>', '<unk>']
+        self.special_tok_dict = {}
+        for token in self.special_tokens:
+            self.special_tok_dict[token] = np.random.rand(self.vector_size)
 
     def transform(self, x):
         """
@@ -32,10 +34,8 @@ class Word2VecTransformer:
         :param str x: input word
         :return:
         """
-        if x == '<start>':
-            r = self.start_vec
-        elif x == '<end>':
-            r = self.end_vec
+        if x in self.special_tokens:
+            r = self.special_tok_dict[x]
         else:
             with self.bert:
                 r = self.bert.embed(x)
