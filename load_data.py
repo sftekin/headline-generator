@@ -31,6 +31,10 @@ class LoadData:
             print('\nCreating data ...')
             self.summaries, self.titles, self.word2int, self.int2word = self.__create_summary_set(contents, titles)
 
+            all_sum_save_path = os.path.join(dataset_path, 'all_sum_set.pkl')
+            with open(all_sum_save_path, 'wb') as f:
+                pkl.dump([self.summaries, self.titles], f)
+
             # select one of the summaries from candidates
             print('\nSelecting summaries ...')
             selector = SummarySelector(self.word2int, self.int2word)
@@ -159,14 +163,14 @@ class LoadData:
 
 if __name__ == '__main__':
     data_params = {
-        "content_len": 50,
+        "content_len": 100,
         "title_len": 15,
         "num_samples": 100,
         "num_sentence": 3,
         "test_ratio": 0.1,
         "val_ratio": 0.1,
         "shuffle": True,
-        "unk_threshold": 5
+        "unk_threshold": 10
     }
     data = LoadData(dataset_path='data', **data_params)
     print()
