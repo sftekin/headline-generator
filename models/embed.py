@@ -18,6 +18,7 @@ class Embedding(nn.Module):
             print('Loading saved embedding vectors')
             self.weights = np.load(self.vector_path, allow_pickle=True)
         else:
+            print('Creating embed tensor')
             self.weights = self.create_embed_tensor()
             np.save(self.vector_path, self.weights)
 
@@ -36,6 +37,7 @@ class Embedding(nn.Module):
         transformer = Word2VecTransformer()
         vectors = []
         for i in range(self.vocab_size):
+            print("\r{:.2f}%".format(i * 100 / self.vocab_size), flush=True, end='')
             vec = transformer.transform(self.int2word[i])
             vectors.append(vec)
         embed = np.stack(vectors, axis=0)
@@ -43,4 +45,9 @@ class Embedding(nn.Module):
 
 
 if __name__ == '__main__':
-    pass
+    import pickle
+
+    vocab = pickle.load(open('../data/vocab.pkl', 'rb'))
+    word2int, int2word = vocab
+    Embedding(int2word)
+

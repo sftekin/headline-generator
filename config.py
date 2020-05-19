@@ -1,12 +1,18 @@
 model_params = {
-        "logging_interval": 1000,
-        "saving_interval": 1000,
-        "model_save_path": '.',
-        "encoder_hidden_size": 512,
-        "decoder_hidden_size": 512,
-        "learning_rate": 0.0001,
-        "padding_idx": 1,
+    'encoder_hidden_dim': 512,
+    'decoder_hidden_dim': 512,
+    'encoder_num_layer': 1,
+    'decoder_num_layer': 1,
+    'dropout_prob': 0.2,
     }
+
+train_params = {
+    'num_epoch': 50,
+    'learn_rate': 0.0003,
+    'tf_ratio': 1,
+    'clip': 5,
+    'eval_every': 100
+}
 
 data_params = {
         "content_len": 50,

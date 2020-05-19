@@ -1,8 +1,9 @@
 import sys
 
-from config import data_params, batch_params
+from config import data_params, batch_params, model_params, train_params
 from load_data import LoadData
 from batch_generator import BatchGenerator
+from trainer import train
 
 
 def main(mode):
@@ -10,12 +11,14 @@ def main(mode):
     data = LoadData(dataset_path=dataset_path, **data_params)
 
     print('Creating Batch Generator...')
-    batch_creator = BatchGenerator(data_dict=data.data_dict,
-                                   label_dict=data.label_dict,
-                                   **batch_params)
+    batch_gen = BatchGenerator(data_dict=data.data_dict,
+                               label_dict=data.label_dict,
+                               **batch_params)
 
-    for x, y in batch_creator.generate('train'):
-        print(x.shape, y.shape)
+    train(vocabs=[data.word2int, data.int2word],
+          batch_gen=batch_gen,
+          train_params=train_params,
+          model_params=model_params)
 
 
 if __name__ == '__main__':
