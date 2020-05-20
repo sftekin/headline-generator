@@ -11,8 +11,9 @@ from transformers.summary_selector import SummarySelector
 
 class LoadData:
     def __init__(self, dataset_path, **data_params):
-        self.summary_path = os.path.join(dataset_path, 'save/summary_set.pkl')
-        self.vocab_path = os.path.join(dataset_path, 'save/vocab.pkl')
+        self.summary_path = os.path.join(dataset_path, 'summary_set.pkl')
+        self.vocab_path = os.path.join(dataset_path, 'vocab.pkl')
+        self.all_sum_save_path = os.path.join(dataset_path, 'all_sum_set.pkl')
         self.raw_data_path = os.path.join(dataset_path, 'all-the-news')
 
         self.content_len = data_params.get('content_len', 50)
@@ -29,15 +30,6 @@ class LoadData:
             contents, titles = self.__load_from_csv()
             print('\nCreating data ...')
             self.summaries, self.titles, self.word2int, self.int2word = self.__create_summary_set(contents, titles)
-
-            # all_sum_save_path = os.path.join(dataset_path, 'all_sum_set.pkl')
-            # with open(all_sum_save_path, 'wb') as f:
-            #     pkl.dump([self.summaries, self.titles], f)
-
-            # # select one of the summaries from candidates
-            # print('\nSelecting summaries ...')
-            # selector = SummarySelector(self.word2int, self.int2word)
-            # self.summaries, self.titles = selector.transform(self.summaries, self.titles)
 
             with open(self.vocab_path, 'wb') as f:
                 pkl.dump([self.word2int, self.int2word], f)
@@ -80,7 +72,7 @@ class LoadData:
 
         summary_label = []
         summary_content = []
-        for i in range(1):
+        for i in range(summarizer.num_summarizers):
             titles = []
             contents = []
             for sum_list, title in zip(sum_collection, sum_titles):
@@ -93,11 +85,19 @@ class LoadData:
             summary_content.append(contents)
             summary_label.append(titles)
 
-        # create vocab
-        word2int, int2word = self.__create_vocab(summary_content[0], summary_label[0])
+        with open(self.all_sum_save_path, 'wb') as f:
+            pkl.dump([summary_content, summary_label], f)
 
-        content_int = [[word2int[word] for word in content] for content in summary_content[0]]
-        title_int = [[word2int[word] for word in title] for title in summary_label[0]]
+        print('\nSelecting summaries ...')
+        selector = SummarySelector()
+        summary_content = selector.transform(summary_content)
+        summary_label = summary_label[0]
+
+        # create vocab
+        word2int, int2word = self.__create_vocab(summary_content, summary_label)
+
+        content_int = [[word2int[word] for word in content] for content in summary_content]
+        title_int = [[word2int[word] for word in title] for title in summary_label]
 
         return content_int, title_int, word2int, int2word
 

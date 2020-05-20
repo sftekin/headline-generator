@@ -96,48 +96,53 @@ def sample(net, vocabs, generator, tf_ratio=0.5, top_k=10, print_count=5):
     net.eval()
     word2int, int2word = vocabs
 
-    outputs = []
     losses = []
     x, y = next(generator)
     x, y = x.to(device), y.to(device)
 
     output = net(x, y, tf_ratio)
-    outputs.append([y, output])
 
-    translate(outputs, int2word, top_k, print_count)
+    translate([y, output], int2word, top_k, print_count)
 
     net.train()
     return losses
 
 
 def translate(outputs, int2word, top_k, print_count, remove_unk=True):
-    for output in outputs:
-        y_true, y_pre = output
-        if torch.cuda.is_available():
-            y_true, y_pre = y_true.cpu(), y_pre.cpu()
+    pred_titles = []
+    true_titles = []
+    y_true, y_pre = outputs
+    if torch.cuda.is_available():
+        y_true, y_pre = y_true.cpu(), y_pre.cpu()
 
-        for i in range(print_count):
-            p = F.softmax(y_pre[i], dim=1).data
+    for i in range(print_count):
+        p = F.softmax(y_pre[i], dim=1).data
 
-            p, top_ch = p.topk(top_k, dim=1)
-            top_ch = top_ch.numpy()
-            p = p.numpy()
+        p, top_ch = p.topk(top_k, dim=1)
+        top_ch = top_ch.numpy()
+        p = p.numpy()
 
-            word_ints = []
-            for j in range(len(p)):
-                choice = np.random.choice(top_ch[j], p=p[j] / p[j].sum())
-                word_ints.append(choice)
+        word_ints = []
+        for j in range(len(p)):
+            choice = np.random.choice(top_ch[j], p=p[j] / p[j].sum())
+            word_ints.append(choice)
 
-            pre_str = create_sen(word_ints, int2word, remove_unk=remove_unk)
-            true_str = create_sen(y_true[i].numpy(), int2word, remove_unk=remove_unk)
+        pre_str = create_sen(word_ints, int2word, remove_unk=remove_unk)
+        true_str = create_sen(y_true[i].numpy(), int2word, remove_unk=remove_unk)
 
-            print("\nOriginal Title: {}\n"
-                  "Predicted Title: {}".format(true_str, pre_str))
+        print("\nOriginal Title: {}\n"
+              "Predicted Title: {}".format(true_str, pre_str))
+
+        if len(pre_str.split()) != 0 and len(true_str.split()) != 0:
+            true_titles.append(true_str.split())
+            pred_titles.append(pre_str.split())
+
+    return true_titles, pred_titles
 
 
 def create_sen(word_ints, vocab, remove_unk):
     output_str = ' '.join([vocab[tit] for tit in word_ints])
-    output_str = output_str.replace('<end>', '').replace('<pad>', '')
+    output_str = output_str.replace('<end>', '').replace('<pad>', '').replace('<start>', '')
     output_str = ' '.join(output_str.split())
     if remove_unk:
         output_str = output_str.replace('<unk>', '')
