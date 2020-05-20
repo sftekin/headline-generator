@@ -7,9 +7,10 @@ from transformers.word2vec import Word2VecTransformer
 
 
 class Embedding(nn.Module):
-    def __init__(self, int2word):
+    def __init__(self, int2word, embed_name='glove'):
         nn.Module.__init__(self)
-        self.vector_path = 'embedding/embed.npy'
+        self.vector_path = 'embedding/embed_{}.npy'.format(embed_name)
+        self.embed_name = embed_name
 
         self.int2word = int2word
         self.vocab_size = len(int2word)
@@ -17,6 +18,7 @@ class Embedding(nn.Module):
         if os.path.isfile(self.vector_path):
             print('Loading saved embedding vectors')
             self.weights = np.load(self.vector_path, allow_pickle=True)
+            self.weights = torch.from_numpy(self.weights)
         else:
             print('Creating embed tensor')
             self.weights = self.create_embed_tensor()
@@ -34,7 +36,7 @@ class Embedding(nn.Module):
         return vectors
 
     def create_embed_tensor(self):
-        transformer = Word2VecTransformer()
+        transformer = Word2VecTransformer(self.embed_name)
         vectors = []
         for i in range(self.vocab_size):
             print("\r{:.2f}%".format(i * 100 / self.vocab_size), flush=True, end='')
@@ -47,7 +49,7 @@ class Embedding(nn.Module):
 if __name__ == '__main__':
     import pickle
 
-    vocab = pickle.load(open('../data/vocab.pkl', 'rb'))
+    vocab = pickle.load(open('data/vocab.pkl', 'rb'))
     word2int, int2word = vocab
     Embedding(int2word)
 

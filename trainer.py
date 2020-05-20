@@ -30,7 +30,7 @@ def train(vocabs, batch_gen, train_params, model_params):
         running_loss = 0
         for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('train')):
 
-            print('\rtrain:{}'.format(idx), flush=True, end='')
+            print('\rtrain:{}/{}'.format(idx, len(batch_gen.dataset_dict['train'])), flush=True, end='')
             x_cap, y_cap = x_cap.to(device), y_cap.to(device)
 
             opt.zero_grad()
@@ -65,7 +65,7 @@ def train(vocabs, batch_gen, train_params, model_params):
         pickle.dump(net, model_file)
 
     print('Training finished, saving the model')
-    model_file = open('vgg_lstm.pkl', 'wb')
+    model_file = open('seq2seq.pkl', 'wb')
     pickle.dump(net, model_file)
 
 
@@ -76,7 +76,7 @@ def evaluate(net, vocab, batch_gen):
     val_losses = []
     for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('validation')):
 
-        print('\rval:{}'.format(idx), flush=True, end='')
+        print('\rtrain:{}/{}'.format(idx, len(batch_gen.dataset_dict['validation'])), flush=True, end='')
 
         x_cap, y_cap = x_cap.to(device), y_cap.to(device)
 

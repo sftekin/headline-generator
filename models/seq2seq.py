@@ -52,15 +52,15 @@ class Attention(nn.Module):
         batch, t_out, d_dec = dec_out.shape
         batch, t_in, d_enc = enc_out.shape
 
-        dec_out = dec_out.view(batch*t_out, d_dec)
-        energy = self.w_in(dec_out)
+        dec_out_ = dec_out.contiguous().view(batch*t_out, d_dec)
+        energy = self.w_in(dec_out_)
         energy = energy.view(batch, t_out, d_enc)
 
         # swap dimensions: (batch, d_enc, t_in)
-        enc_out = enc_out.transpose(1, 2)
+        enc_out_ = enc_out.transpose(1, 2)
 
         # (batch, t_out, d_enc) x (batch, d_enc, t_in) -> (batch, t_out, t_in)
-        attn_energies = torch.bmm(energy, enc_out)
+        attn_energies = torch.bmm(energy, enc_out_)
 
         alpha = self.softmax(attn_energies.view(batch*t_out, t_in))
         alpha = alpha.view(batch, t_out, t_in)
@@ -87,17 +87,18 @@ class Decoder(nn.Module):
 
         self.embedding_layer = Embedding(vocab)
         self.embed_dim = self.embedding_layer.embed_dim
-        self.rnn = nn.LSTM(input_size=self.embedding.embed_dim,
+        self.rnn = nn.LSTM(input_size=self.embed_dim,
                            hidden_size=self.hidden_dim,
                            num_layers=self.num_layers,
                            batch_first=True)
 
         self.attention = Attention(dec_hidden=self.hidden_dim, enc_hidden=self.enc_hidden)
-        self.out_lin = nn.Linear(self.hidden_dim, self.embedding.vocab_size)
+        self.out_lin = nn.Linear(self.hidden_dim, self.embedding_layer.vocab_size)
         self.dropout = nn.Dropout(self.drop_prob)
 
     def forward(self, input_tensor, hidden, enc_out):
         # Teacher-forcing,
+        input_tensor = input_tensor.unsqueeze(1)
         embed = self.embedding_layer.embedding(input_tensor).float()
         embed = self.dropout(embed)
 
@@ -105,7 +106,7 @@ class Decoder(nn.Module):
         attn_out, alpha = self.attention(dec_out, enc_out)
         output = self.out_lin(attn_out)
 
-        return output
+        return output, hidden
 
 
 class Seq2Seq(nn.Module):
@@ -139,17 +140,18 @@ class Seq2Seq(nn.Module):
 
         enc_out, hidden = self.encoder(contents)
 
-        # <start> is mapped to id=3
-        dec_inputs = torch.ones_like(contents[0]) * 3
+        # <start> is mapped to id=2
+        dec_inputs = torch.ones(batch, dtype=torch.long) * 2
+        pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
 
-        outputs = []
-        for i in range(title_len):
-            pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
-            outputs.append(pred)
+        outputs = [pred]
+        for i in range(1, title_len):
             use_tf = random.random() < tf_ratio
             dec_inputs = titles[:, i] if use_tf else pred.max(1)[1]
+            pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
+            outputs.append(pred)
 
-        outputs = torch.stack(outputs, dim=1)
+        outputs = torch.cat(outputs, dim=1)
 
         return outputs
 
