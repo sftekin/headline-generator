@@ -1,6 +1,7 @@
 import torch
 import pickle
 import numpy as np
+import collections
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -18,11 +19,12 @@ def train(vocabs, batch_gen, train_params, model_params):
     clip = train_params['clip']
     eval_every = train_params['eval_every']
 
-    net = Seq2Seq(vocab=int2word, device=device, **model_params).to(device)
+    net = Seq2Seq(vocabs=vocabs, device=device, **model_params).to(device)
     net.train()
 
     opt = optim.Adam(net.parameters(), lr=learn_rate)
-    criterion = nn.CrossEntropyLoss(ignore_index=word2int['<pad>'])
+    weights = calc_class_weights(batch_gen.data_dict, batch_gen.label_dict)
+    criterion = nn.CrossEntropyLoss(weight=weights, ignore_index=word2int['<pad>'])
 
     print('Training is starting ...')
     train_loss_list = []
@@ -47,7 +49,7 @@ def train(vocabs, batch_gen, train_params, model_params):
 
             if (idx+1) % eval_every == 0:
                 print('\n')
-                val_loss = evaluate(net, word2int, batch_gen, tf_ratio)
+                val_loss = evaluate(net, word2int, batch_gen, weights, tf_ratio)
                 print("\nEpoch: {}/{}...".format(epoch + 1, num_epoch),
                       "Step: {}...".format(idx),
                       "Loss: {:.4f}...".format(running_loss / idx),
@@ -70,9 +72,9 @@ def train(vocabs, batch_gen, train_params, model_params):
     pickle.dump(net, model_file)
 
 
-def evaluate(net, vocab, batch_gen, tf_ratio):
+def evaluate(net, vocab, batch_gen, weights, tf_ratio):
     net.eval()
-    criterion = nn.CrossEntropyLoss(ignore_index=vocab['<pad>'])
+    criterion = nn.CrossEntropyLoss(weight=weights, ignore_index=vocab['<pad>'])
 
     val_losses = []
     for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('validation')):
@@ -141,3 +143,23 @@ def create_sen(word_ints, vocab, remove_unk):
         output_str = ' '.join(output_str.split())
 
     return output_str
+
+
+def calc_class_weights(data_dict, label_dict):
+    all_data = []
+    for data_name in ['train', 'validation', 'test']:
+        data = np.array(data_dict[data_name]).flatten()
+        label = np.array(label_dict[data_name]).flatten()
+        all_data.append(data)
+        all_data.append(label)
+    all_data = np.concatenate(all_data)
+
+    counts = collections.Counter(all_data)
+    counts_array = np.array(list(counts.values()))
+
+    # calculating idf
+    word_count = len(all_data.flatten())
+    counts_array = np.log(word_count / counts_array)
+    counts_tensor = torch.from_numpy(counts_array).float().to(device)
+
+    return counts_tensor

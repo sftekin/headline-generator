@@ -11,7 +11,7 @@ class Summarizer:
         self.trim_len = trim_len
         self.tokenizer = Tokenizer('english')
 
-        self.summarizers = [LexRankSummarizer(), LsaSummarizer(), SumBasicSummarizer()]
+        self.summarizers = [LexRankSummarizer()]
         self.num_summarizers = len(self.summarizers)
 
     def transform(self, X, y):

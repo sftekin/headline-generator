@@ -30,14 +30,17 @@ class LoadData:
             print('\nCreating data ...')
             self.summaries, self.titles, self.word2int, self.int2word = self.__create_summary_set(contents, titles)
 
-            all_sum_save_path = os.path.join(dataset_path, 'all_sum_set.pkl')
-            with open(all_sum_save_path, 'wb') as f:
-                pkl.dump([self.summaries, self.titles], f)
+            # all_sum_save_path = os.path.join(dataset_path, 'all_sum_set.pkl')
+            # with open(all_sum_save_path, 'wb') as f:
+            #     pkl.dump([self.summaries, self.titles], f)
 
-            # select one of the summaries from candidates
-            print('\nSelecting summaries ...')
-            selector = SummarySelector(self.word2int, self.int2word)
-            self.summaries, self.titles = selector.transform(self.summaries, self.titles)
+            # # select one of the summaries from candidates
+            # print('\nSelecting summaries ...')
+            # selector = SummarySelector(self.word2int, self.int2word)
+            # self.summaries, self.titles = selector.transform(self.summaries, self.titles)
+
+            with open(self.vocab_path, 'wb') as f:
+                pkl.dump([self.word2int, self.int2word], f)
 
             with open(self.summary_path, 'wb') as f:
                 pkl.dump([self.summaries, self.titles], f)
@@ -77,7 +80,7 @@ class LoadData:
 
         summary_label = []
         summary_content = []
-        for i in range(summarizer.num_summarizers):
+        for i in range(1):
             titles = []
             contents = []
             for sum_list, title in zip(sum_collection, sum_titles):
@@ -91,54 +94,37 @@ class LoadData:
             summary_label.append(titles)
 
         # create vocab
-        word2int, int2word = self.__create_vocab(summary_content, summary_label)
+        word2int, int2word = self.__create_vocab(summary_content[0], summary_label[0])
 
-        sum_label_int = []
-        sum_con_int = []
-        for i in range(summarizer.num_summarizers):
-            content_int = [[word2int[word] for word in content] for content in summary_content[i]]
-            title_int = [[word2int[word] for word in title] for title in summary_label[i]]
-            sum_con_int.append(content_int)
-            sum_label_int.append(title_int)
+        content_int = [[word2int[word] for word in content] for content in summary_content[0]]
+        title_int = [[word2int[word] for word in title] for title in summary_label[0]]
 
-        with open(self.vocab_path, 'wb') as f:
-            pkl.dump([word2int, int2word], f)
-
-        return sum_con_int, sum_label_int, word2int, int2word
+        return content_int, title_int, word2int, int2word
 
     def __create_vocab(self, contents, titles):
-        # create_vocab
-        all_words = []
-        for i in range(len(contents)):
-            for c, t in zip(contents[i], titles[i]):
-                all_words += c + t
+        contents, titles = self.__rmv_less_frequent(contents, titles)
+        vocab = self.__get_counts(contents, titles)
 
-        self.__rmv_less_frequent(all_words, contents, titles)
-
-        vocab = Counter(all_words)
-        vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
-
-        word2int = {k: v for v, k in enumerate(vocab.keys(), 1)}
-        word2int['<unk>'] = 0
+        word2int = {k: v for v, k in enumerate(vocab.keys())}
         int2word = {v: k for k, v in word2int.items()}
 
         return word2int, int2word
 
-    def __rmv_less_frequent(self, all_words, contents, titles):
-        vocab = Counter(all_words)
-        vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
+    def __rmv_less_frequent(self, contents, titles):
+        vocab = self.__get_counts(contents, titles)
 
         # replace the less frequent words with '<unk>'
         for i in range(len(contents)):
-            for content, title in zip(contents[i], titles[i]):
-                for k in range(len(content)):
-                    word = content[k]
-                    if vocab[word] <= self.unk_threshold:
-                        content[k] = '<unk>'
-                for k in range(len(title)):
-                    word = title[k]
-                    if vocab[word] <= self.unk_threshold:
-                        title[k] = '<unk>'
+            for j in range(len(contents[i])):
+                word = contents[i][j]
+                if vocab[word] <= self.unk_threshold:
+                    contents[i][j] = '<unk>'
+            for k in range(len(titles[i])):
+                word = titles[i][k]
+                if vocab[word] <= self.unk_threshold:
+                    titles[i][k] = '<unk>'
+
+        return contents, titles
 
     def __split_data(self):
         dataset_length = len(self.summaries)
@@ -164,6 +150,18 @@ class LoadData:
         label_dict['train'] = self.titles[test_count + val_count:]
 
         return data_dict, label_dict
+
+    @staticmethod
+    def __get_counts(contents, titles):
+        # create_vocab
+        all_words = []
+        for c, t in zip(contents, titles):
+            all_words += c + t
+
+        vocab = Counter(all_words)
+        vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
+
+        return vocab
 
 
 if __name__ == '__main__':

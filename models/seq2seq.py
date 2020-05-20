@@ -110,9 +110,9 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self, vocab, device, **model_params):
+    def __init__(self, vocabs, device, **model_params):
         super(Seq2Seq, self).__init__()
-        self.vocab = vocab
+        self.word2int, self.intword = vocabs
         self.enc_hidden = model_params['encoder_hidden_dim']
         self.dec_hidden = model_params['decoder_hidden_dim']
         self.enc_num_layer = model_params['encoder_num_layer']
@@ -120,11 +120,11 @@ class Seq2Seq(nn.Module):
         self.drop_prob = model_params['dropout_prob']
         self.device = device
 
-        self.encoder = Encoder(vocab=self.vocab,
+        self.encoder = Encoder(vocab=self.intword,
                                hidden_dim=self.enc_hidden,
                                num_layers=self.enc_num_layer,
                                device=self.device)
-        self.decoder = Decoder(vocab=self.vocab,
+        self.decoder = Decoder(vocab=self.intword,
                                hidden_dim=self.dec_hidden,
                                enc_hidden=self.enc_hidden,
                                num_layers=self.dec_num_layer,
@@ -144,7 +144,7 @@ class Seq2Seq(nn.Module):
         enc_out, hidden = self.encoder(contents)
 
         # <start> is mapped to id=2
-        dec_inputs = torch.ones(batch, dtype=torch.long) * 2
+        dec_inputs = torch.ones(batch, dtype=torch.long) * self.word2int['<start>']
         dec_inputs = dec_inputs.to(self.device)
         pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
 
