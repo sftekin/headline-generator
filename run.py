@@ -15,10 +15,11 @@ def main(mode):
                                label_dict=data.label_dict,
                                **batch_params)
 
-    train(vocabs=[data.word2int, data.int2word],
-          batch_gen=batch_gen,
-          train_params=train_params,
-          model_params=model_params)
+    if mode == 'train':
+        train(vocabs=[data.word2int, data.int2word],
+              batch_gen=batch_gen,
+              train_params=train_params,
+              model_params=model_params)
 
 
 if __name__ == '__main__':

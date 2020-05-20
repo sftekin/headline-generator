@@ -1,17 +1,17 @@
 model_params = {
     'encoder_hidden_dim': 512,
     'decoder_hidden_dim': 512,
-    'encoder_num_layer': 2,
-    'decoder_num_layer': 2,
-    'dropout_prob': 0.2,
+    'encoder_num_layer': 1,
+    'decoder_num_layer': 1,
+    'dropout_prob': 0.3,
     'embed_name': 'fasttext'
     }
 
 train_params = {
     'num_epoch': 50,
-    'learn_rate': 0.001,
-    'train_tf_ratio': 0.8,
-    'val_tf_ratio': 0.3,
+    'learn_rate': 0.0003,
+    'train_tf_ratio': 0.5,
+    'val_tf_ratio': 0.1,
     'clip': 5,
     'eval_every': 400
 }
