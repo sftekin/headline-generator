@@ -28,9 +28,9 @@ def train(vocabs, batch_gen, train_params, model_params):
     val_loss_list = []
     for epoch in range(num_epoch):
         running_loss = 0
-        for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('train')):
 
-            print('\rtrain:{}/{}'.format(idx, len(batch_gen.dataset_dict['train'])), flush=True, end='')
+        for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('train')):
+            print('\rtrain:{}/{}'.format(idx, batch_gen.num_iter('train')), flush=True, end='')
             x_cap, y_cap = x_cap.to(device), y_cap.to(device)
 
             opt.zero_grad()
@@ -46,11 +46,11 @@ def train(vocabs, batch_gen, train_params, model_params):
 
             if (idx+1) % eval_every == 0:
                 print('\n')
-                val_loss = evaluate(net, word2int, batch_gen)
-                print("\nEpoch: {}/{}...".format(epoch + 1, num_epoch),
+                val_loss = evaluate(net, word2int, batch_gen, tf_ratio)
+                print("Epoch: {}/{}...".format(epoch + 1, num_epoch),
                       "Step: {}...".format(idx),
                       "Loss: {:.4f}...".format(running_loss / idx),
-                      "Val Loss: {:.4f}".format(val_loss))
+                      "Val Loss: {:.4f}\n".format(val_loss))
 
         # print('Creating sample captions')
         # sample(net, batch_gen, top_k=5, **kwargs)
@@ -59,8 +59,8 @@ def train(vocabs, batch_gen, train_params, model_params):
         train_loss_list.append(running_loss / idx)
         val_loss_list.append(val_loss)
 
-        loss_file = open('losses.pkl', 'wb')
-        model_file = open('vgg_lstm.pkl', 'wb')
+        loss_file = open('results/losses.pkl', 'wb')
+        model_file = open('results/seq2seq.pkl', 'wb')
         pickle.dump([train_loss_list, val_loss_list], loss_file)
         pickle.dump(net, model_file)
 
@@ -69,20 +69,19 @@ def train(vocabs, batch_gen, train_params, model_params):
     pickle.dump(net, model_file)
 
 
-def evaluate(net, vocab, batch_gen):
+def evaluate(net, vocab, batch_gen, tf_ratio):
     net.eval()
     criterion = nn.CrossEntropyLoss(ignore_index=vocab['<pad>'])
 
     val_losses = []
     for idx, (x_cap, y_cap) in enumerate(batch_gen.generate('validation')):
 
-        print('\rtrain:{}/{}'.format(idx, len(batch_gen.dataset_dict['validation'])), flush=True, end='')
+        print('\reval:{}/{}'.format(idx, batch_gen.num_iter('validation')), flush=True, end='')
 
         x_cap, y_cap = x_cap.to(device), y_cap.to(device)
+        output = net(x_cap, y_cap, tf_ratio)
 
-        output = net(x_cap)
         val_loss = criterion(output.view(-1, output.size(2)), y_cap.view(-1).long())
-
         val_losses.append(val_loss.item())
 
     net.train()

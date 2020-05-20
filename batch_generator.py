@@ -21,13 +21,16 @@ class BatchGenerator:
         selected_loader = self.dataloader_dict[data_type]
         yield from selected_loader
 
+    def num_iter(self, data_type):
+        dataset = self.dataset_dict[data_type]
+        return len(dataset) // self.batch_size
+
     def __create_data(self):
 
         im_dataset = {}
         for i in ['test', 'train', 'validation']:
             im_dataset[i] = HeadlineDataset(articles=self.data_dict[i],
-                                            titles=self.label_dict[i],
-                                            batch_size=self.batch_size)
+                                            titles=self.label_dict[i])
 
         im_loader = {}
         for i in ['test', 'train', 'validation']:

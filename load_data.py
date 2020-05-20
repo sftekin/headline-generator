@@ -114,6 +114,18 @@ class LoadData:
             for c, t in zip(contents[i], titles[i]):
                 all_words += c + t
 
+        self.__rmv_less_frequent(all_words, contents, titles)
+
+        vocab = Counter(all_words)
+        vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
+
+        word2int = {k: v for v, k in enumerate(vocab.keys(), 1)}
+        word2int['<unk>'] = 0
+        int2word = {v: k for k, v in word2int.items()}
+
+        return word2int, int2word
+
+    def __rmv_less_frequent(self, all_words, contents, titles):
         vocab = Counter(all_words)
         vocab = {k: v for k, v in sorted(vocab.items(), key=lambda x: x[1], reverse=True)}
 
@@ -128,12 +140,6 @@ class LoadData:
                     word = title[k]
                     if vocab[word] <= self.unk_threshold:
                         title[k] = '<unk>'
-
-        word2int = {k: v for v, k in enumerate(vocab.keys(), 1)}
-        word2int['<unk>'] = 0
-        int2word = {v: k for k, v in word2int.items()}
-
-        return word2int, int2word
 
     def __split_data(self):
         dataset_length = len(self.summaries)
