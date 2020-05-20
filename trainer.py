@@ -90,7 +90,6 @@ def evaluate(net, vocab, batch_gen, tf_ratio):
 
 
 def predict(net, vocabs, generator, tf_ratio=0.5, print_count=1, top_k=10):
-    net.to(device)
     net.eval()
     word2int, int2word = vocabs
     criterion = nn.CrossEntropyLoss(ignore_index=word2int['<pad>'])
