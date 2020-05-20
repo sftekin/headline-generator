@@ -11,8 +11,8 @@ from transformers.summary_selector import SummarySelector
 
 class LoadData:
     def __init__(self, dataset_path, **data_params):
-        self.summary_path = os.path.join(dataset_path, 'summary_set.pkl')
-        self.vocab_path = os.path.join(dataset_path, 'vocab.pkl')
+        self.summary_path = os.path.join(dataset_path, 'save/summary_set.pkl')
+        self.vocab_path = os.path.join(dataset_path, 'save/vocab.pkl')
         self.raw_data_path = os.path.join(dataset_path, 'all-the-news')
 
         self.content_len = data_params.get('content_len', 50)

@@ -27,7 +27,7 @@ data_params = {
 }
 
 batch_params = {
-    'batch_size': 128,
+    'batch_size': 8,
     'num_works': 0,
     'shuffle': True,
 }
