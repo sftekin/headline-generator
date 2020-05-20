@@ -145,7 +145,8 @@ class Seq2Seq(nn.Module):
 
         # <start> is mapped to id=2
         dec_inputs = torch.ones(batch, dtype=torch.long) * 2
-        pred, hidden = self.decoder(dec_inputs, hidden, enc_out).to(self.device)
+        dec_inputs.to(self.device)
+        pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
 
         outputs = [pred]
         for i in range(1, title_len):
