@@ -25,9 +25,8 @@ class LoadData:
         self.val_ratio = data_params.get('val_ratio', 0.1)
         self.shuffle = data_params.get('shuffle', True)
 
-        contents, titles = self.__load_from_csv()
-
         if not os.path.isfile(self.vocab_path) or not os.path.isfile(self.summary_path):
+            contents, titles = self.__load_from_csv()
             print('\nCreating data ...')
             self.summaries, self.titles, self.word2int, self.int2word = self.__create_summary_set(contents, titles)
 
