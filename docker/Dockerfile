@@ -14,4 +14,6 @@ RUN pip install sumy==0.8.1
 RUN python -c "import nltk; nltk.download('punkt')"
 RUN python -c "import nltk; nltk.download('stopwords')"
 
+RUN pip install emoji==0.5.4
+
 WORKDIR /workspace
