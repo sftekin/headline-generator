@@ -26,7 +26,8 @@ class BatchGenerator:
         im_dataset = {}
         for i in ['test', 'train', 'validation']:
             im_dataset[i] = HeadlineDataset(articles=self.data_dict[i],
-                                            titles=self.label_dict[i])
+                                            titles=self.label_dict[i],
+                                            batch_size=self.batch_size)
 
         im_loader = {}
         for i in ['test', 'train', 'validation']:
