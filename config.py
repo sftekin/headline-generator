@@ -11,7 +11,7 @@ train_params = {
     'num_epoch': 50,
     'learn_rate': 0.001,
     'train_tf_ratio': 0.8,
-    'val_tf_ratio': 0.5,
+    'val_tf_ratio': 0.3,
     'clip': 5,
     'eval_every': 400
 }
