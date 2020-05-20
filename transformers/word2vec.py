@@ -24,7 +24,6 @@ class Word2VecTransformer:
             self.model = Bert(self.vector_path)
 
         elif embed_name == 'fasttext':
-            from gensim.models import KeyedVectors
             self.model_path = os.path.join(project_dir, 'embedding/fasttext.pkl')
             self.vector_path = os.path.join(project_dir, 'embedding/fasttext.vec')
 
