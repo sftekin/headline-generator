@@ -15,7 +15,6 @@ def train(vocabs, batch_gen, train_params, model_params):
     word2int, int2word = vocabs
     num_epoch = train_params['num_epoch']
     learn_rate = train_params['learn_rate']
-    tf_ratio = train_params['tf_ratio']
     clip = train_params['clip']
     eval_every = train_params['eval_every']
     train_tf_ratio = train_params['train_tf_ratio']
