@@ -10,7 +10,8 @@ model_params = {
 train_params = {
     'num_epoch': 50,
     'learn_rate': 0.001,
-    'tf_ratio': 1,
+    'train_tf_ratio': 0.8,
+    'val_tf_ratio': 0.5,
     'clip': 5,
     'eval_every': 400
 }

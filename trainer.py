@@ -18,6 +18,8 @@ def train(vocabs, batch_gen, train_params, model_params):
     tf_ratio = train_params['tf_ratio']
     clip = train_params['clip']
     eval_every = train_params['eval_every']
+    train_tf_ratio = train_params['train_tf_ratio']
+    val_tf_ratio = train_params['val_tf_ratio']
 
     net = Seq2Seq(vocabs=vocabs, device=device, **model_params).to(device)
     net.train()
@@ -37,7 +39,7 @@ def train(vocabs, batch_gen, train_params, model_params):
             x_cap, y_cap = x_cap.to(device), y_cap.to(device)
 
             opt.zero_grad()
-            output = net(x_cap, y_cap, tf_ratio)
+            output = net(x_cap, y_cap, train_tf_ratio)
 
             loss = criterion(output.view(-1, output.size(2)), y_cap.view(-1).long())
             loss.backward()
@@ -49,7 +51,7 @@ def train(vocabs, batch_gen, train_params, model_params):
 
             if (idx+1) % eval_every == 0:
                 print('\n')
-                val_loss = evaluate(net, word2int, batch_gen, weights, tf_ratio)
+                val_loss = evaluate(net, word2int, batch_gen, weights, val_tf_ratio)
                 print("\nEpoch: {}/{}...".format(epoch + 1, num_epoch),
                       "Step: {}...".format(idx),
                       "Loss: {:.4f}...".format(running_loss / idx),
