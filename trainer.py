@@ -54,7 +54,7 @@ def train(vocabs, batch_gen, train_params, model_params):
                       "Val Loss: {:.4f}\n".format(val_loss))
 
         print('\nCreating sample captions')
-        predict(net, vocabs, batch_gen.generate('validation'))
+        predict(net, vocabs, generator=batch_gen.generate('validation'))
         print('\n')
 
         train_loss_list.append(running_loss / idx)

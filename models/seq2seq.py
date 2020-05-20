@@ -153,13 +153,26 @@ class Seq2Seq(nn.Module):
             use_tf = random.random() < tf_ratio
             if use_tf:
                 dec_inputs = pred.max(dim=2)[1]
-                dec_inputs = dec_inputs.squeeze()
+                dec_inputs = dec_inputs.squeeze().to(self.device)
             else:
                 dec_inputs = titles[:, i]
             pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
             outputs.append(pred)
 
+        self.__repackage_hidden(hidden)
+
         outputs = torch.cat(outputs, dim=1)
 
         return outputs
+
+    def __repackage_hidden(self, h):
+        """
+        Wraps hidden states in new Tensors, to detach them from their history.
+
+        :param h: list of states, e.g [state, state, ...]
+        """
+        if isinstance(h, torch.Tensor):
+            return h.detach()
+        else:
+            return tuple(self.__repackage_hidden(v) for v in h)
 
