@@ -11,7 +11,7 @@ train_params = {
     'learn_rate': 0.001,
     'tf_ratio': 1,
     'clip': 5,
-    'eval_every': 200
+    'eval_every': 400
 }
 
 data_params = {
@@ -26,7 +26,7 @@ data_params = {
 }
 
 batch_params = {
-    'batch_size': 256,
+    'batch_size': 128,
     'num_works': 0,
     'shuffle': True,
 }

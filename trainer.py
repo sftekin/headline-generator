@@ -48,12 +48,12 @@ def train(vocabs, batch_gen, train_params, model_params):
             if (idx+1) % eval_every == 0:
                 print('\n')
                 val_loss = evaluate(net, word2int, batch_gen, tf_ratio)
-                print("Epoch: {}/{}...".format(epoch + 1, num_epoch),
+                print("\nEpoch: {}/{}...".format(epoch + 1, num_epoch),
                       "Step: {}...".format(idx),
                       "Loss: {:.4f}...".format(running_loss / idx),
                       "Val Loss: {:.4f}\n".format(val_loss))
 
-        print('Creating sample captions')
+        print('\nCreating sample captions')
         predict(net, vocabs, batch_gen.generate('validation'))
         print('\n')
 
@@ -115,12 +115,12 @@ def predict(net, vocabs, generator, tf_ratio=0.5, print_count=1, top_k=10):
 def translate(outputs, int2word, top_k, remove_unk=True):
     for output in outputs:
         y_true, y_pre = output
+        if torch.cuda.is_available():
+            y_true, y_pre = y_true.cpu(), y_pre.cpu()
         batch_size = y_pre.shape[0]
 
         for i in range(batch_size):
             p = F.softmax(y_pre[i], dim=1).data
-            if torch.cuda.is_available():
-                p = p.cpu()
 
             p, top_ch = p.topk(top_k, dim=1)
             top_ch = top_ch.numpy()
