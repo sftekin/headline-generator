@@ -15,5 +15,6 @@ RUN python -c "import nltk; nltk.download('punkt')"
 RUN python -c "import nltk; nltk.download('stopwords')"
 
 RUN pip install emoji==0.5.4
+RUN pip install gensim==3.8.1
 
 WORKDIR /workspace

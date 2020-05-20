@@ -1,6 +1,7 @@
 import os
 import pickle as pkl
 import numpy as np
+from gensim.models import KeyedVectors
 
 np.random.seed(42)
 
@@ -21,6 +22,19 @@ class Word2VecTransformer:
 
             print('Downloading BERT Model')
             self.model = Bert(self.vector_path)
+
+        elif embed_name == 'fasttext':
+            self.vector_path = os.path.join(project_dir, 'embedding/fasttext.pkl')
+            self.model_path = os.path.join(project_dir, 'embedding/fasttext.vec')
+
+            if os.path.isfile(self.vector_path):
+                model_file = open(self.model_path, 'rb')
+                self.model = pkl.load(model_file)
+            else:
+                print('Loading Fasttext model')
+                self.model = KeyedVectors.load_word2vec_format(self.model_path, binary=False, unicode_errors='replace')
+                model_file = open(self.model_path, 'wb')
+                pkl.dump(self.model, model_file)
 
         self.special_tokens = ['<start>', '<end>', '<pad>', '<unk>']
         self.special_tok_dict = {}
@@ -43,6 +57,11 @@ class Word2VecTransformer:
             elif self.embed_name == 'glove':
                 if x in self.model:
                     r = self.model[x]
+                else:
+                    r = np.random.rand(self.vector_size)
+            elif self.embed_name == 'fasttext':
+                if x in self.model.wv:
+                    r = self.model.wv[x]
                 else:
                     r = np.random.rand(self.vector_size)
         return r

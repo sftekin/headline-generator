@@ -4,6 +4,7 @@ model_params = {
     'encoder_num_layer': 2,
     'decoder_num_layer': 2,
     'dropout_prob': 0.2,
+    'embed_name': 'fasttext'
     }
 
 train_params = {
@@ -11,13 +12,13 @@ train_params = {
     'learn_rate': 0.001,
     'tf_ratio': 1,
     'clip': 5,
-    'eval_every': 400
+    'eval_every': 200
 }
 
 data_params = {
     "content_len": 50,
     "title_len": 15,
-    "num_samples": -1,
+    "num_samples": 100,
     "num_sentence": 3,
     "test_ratio": 0.1,
     "val_ratio": 0.1,
