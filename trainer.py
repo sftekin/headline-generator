@@ -17,7 +17,7 @@ def train(vocabs, batch_gen, train_params, model_params):
     clip = train_params['clip']
     eval_every = train_params['eval_every']
 
-    net = Seq2Seq(vocab=int2word, **model_params).to(device)
+    net = Seq2Seq(vocab=int2word, device=device, **model_params).to(device)
     net.train()
 
     opt = optim.Adam(net.parameters(), lr=learn_rate)
