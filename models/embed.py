@@ -7,7 +7,7 @@ from transformers.word2vec import Word2VecTransformer
 
 
 class Embedding(nn.Module):
-    def __init__(self, int2word, embed_name='glove'):
+    def __init__(self, int2word, device, embed_name='glove'):
         nn.Module.__init__(self)
         self.vector_path = 'embedding/embed_{}.npy'.format(embed_name)
         self.embed_name = embed_name
@@ -25,7 +25,7 @@ class Embedding(nn.Module):
             np.save(self.vector_path, self.weights)
 
         self.embed_dim = self.weights.shape[1]
-        self.embedding = nn.Embedding.from_pretrained(self.weights)
+        self.embedding = nn.Embedding.from_pretrained(self.weights).to(device)
 
     def forward(self, captions):
         """

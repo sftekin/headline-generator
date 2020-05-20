@@ -6,12 +6,12 @@ from models.embed import Embedding
 
 
 class Encoder(nn.Module):
-    def __init__(self, vocab, hidden_dim, num_layers):
+    def __init__(self, vocab, hidden_dim, num_layers, device):
         super(Encoder, self).__init__()
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
 
-        self.embedding_layer = Embedding(vocab)
+        self.embedding_layer = Embedding(vocab, device)
         self.embed_dim = self.embedding_layer.embed_dim
 
         self.rnn = nn.LSTM(input_size=self.embed_dim,
@@ -78,14 +78,14 @@ class Attention(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, vocab, hidden_dim, enc_hidden, num_layers, dropout_prob):
+    def __init__(self, vocab, hidden_dim, enc_hidden, num_layers, dropout_prob, device):
         super(Decoder, self).__init__()
         self.hidden_dim = hidden_dim
         self.enc_hidden = enc_hidden
         self.num_layers = num_layers
         self.drop_prob = dropout_prob
 
-        self.embedding_layer = Embedding(vocab)
+        self.embedding_layer = Embedding(vocab, device)
         self.embed_dim = self.embedding_layer.embed_dim
         self.rnn = nn.LSTM(input_size=self.embed_dim,
                            hidden_size=self.hidden_dim,
@@ -110,7 +110,7 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self, vocab, **model_params):
+    def __init__(self, vocab, device, **model_params):
         super(Seq2Seq, self).__init__()
         self.vocab = vocab
         self.enc_hidden = model_params['encoder_hidden_dim']
@@ -118,15 +118,18 @@ class Seq2Seq(nn.Module):
         self.enc_num_layer = model_params['encoder_num_layer']
         self.dec_num_layer = model_params['decoder_num_layer']
         self.drop_prob = model_params['dropout_prob']
+        self.device = device
 
         self.encoder = Encoder(vocab=self.vocab,
                                hidden_dim=self.enc_hidden,
-                               num_layers=self.enc_num_layer)
+                               num_layers=self.enc_num_layer,
+                               device=self.device)
         self.decoder = Decoder(vocab=self.vocab,
                                hidden_dim=self.dec_hidden,
                                enc_hidden=self.enc_hidden,
                                num_layers=self.dec_num_layer,
-                               dropout_prob=self.drop_prob)
+                               dropout_prob=self.drop_prob,
+                               device=self.device)
 
     def forward(self, contents, titles, tf_ratio=0.0):
         """
