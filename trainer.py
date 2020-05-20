@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 
 from models.seq2seq import Seq2Seq
 
@@ -52,9 +53,9 @@ def train(vocabs, batch_gen, train_params, model_params):
                       "Loss: {:.4f}...".format(running_loss / idx),
                       "Val Loss: {:.4f}\n".format(val_loss))
 
-        # print('Creating sample captions')
-        # sample(net, batch_gen, top_k=5, **kwargs)
-        # print('\n')
+        print('Creating sample captions')
+        predict(net, vocabs, batch_gen.generate('validation'))
+        print('\n')
 
         train_loss_list.append(running_loss / idx)
         val_loss_list.append(val_loss)
@@ -86,3 +87,64 @@ def evaluate(net, vocab, batch_gen, tf_ratio):
 
     net.train()
     return np.mean(val_losses)
+
+
+def predict(net, vocabs, generator, tf_ratio=0.5, print_count=1, top_k=10):
+    net.to(device)
+    net.eval()
+    word2int, int2word = vocabs
+    criterion = nn.CrossEntropyLoss(ignore_index=word2int['<pad>'])
+
+    outputs = []
+    losses = []
+    for x, y in generator:
+        x, y = x.to(device), y.to(device)
+
+        output = net(x, y, tf_ratio)
+        outputs.append([y, output])
+
+        loss = criterion(output.view(-1, output.size(2)), y.view(-1).long())
+        losses.append(loss.item())
+
+    if print_count > 0:
+        translate(outputs[:print_count], int2word, top_k)
+
+    net.train()
+    return losses
+
+
+def translate(outputs, int2word, top_k, remove_unk=True):
+    for output in outputs:
+        y_true, y_pre = output
+        batch_size = y_pre.shape[0]
+
+        for i in range(batch_size):
+            p = F.softmax(y_pre[i], dim=1).data
+            if torch.cuda.is_available():
+                p = p.cpu()
+
+            p, top_ch = p.topk(top_k, dim=1)
+            top_ch = top_ch.numpy()
+            p = p.numpy()
+
+            word_ints = []
+            for j in range(len(p)):
+                choice = np.random.choice(top_ch[j], p=p[j] / p[j].sum())
+                word_ints.append(choice)
+
+            pre_str = create_sen(word_ints, int2word, remove_unk=remove_unk)
+            true_str = create_sen(y_true[i].numpy(), int2word, remove_unk=remove_unk)
+
+            print("\nOriginal Title: {}\n"
+                  "Predicted Title: {}".format(true_str, pre_str))
+
+
+def create_sen(word_ints, vocab, remove_unk):
+    output_str = ' '.join([vocab[tit] for tit in word_ints])
+    output_str = output_str.replace('<end>', '').replace('<pad>', '')
+    output_str = ' '.join(output_str.split())
+    if remove_unk:
+        output_str = output_str.replace('unk', '')
+        output_str = ' '.join(output_str.split())
+
+    return output_str

@@ -151,7 +151,11 @@ class Seq2Seq(nn.Module):
         outputs = [pred]
         for i in range(1, title_len):
             use_tf = random.random() < tf_ratio
-            dec_inputs = titles[:, i] if use_tf else pred.max(1)[1]
+            if use_tf:
+                dec_inputs = pred.max(dim=2)[1]
+                dec_inputs = dec_inputs.squeeze()
+            else:
+                dec_inputs = titles[:, i]
             pred, hidden = self.decoder(dec_inputs, hidden, enc_out)
             outputs.append(pred)
 

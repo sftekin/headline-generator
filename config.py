@@ -8,22 +8,22 @@ model_params = {
 
 train_params = {
     'num_epoch': 50,
-    'learn_rate': 0.01,
+    'learn_rate': 0.001,
     'tf_ratio': 1,
-    'clip': 1,
+    'clip': 5,
     'eval_every': 200
 }
 
 data_params = {
-        "content_len": 50,
-        "title_len": 15,
-        "num_samples": -1,
-        "num_sentence": 3,
-        "test_ratio": 0.1,
-        "val_ratio": 0.1,
-        "shuffle": True,
-        "unk_threshold": 15
-    }
+    "content_len": 50,
+    "title_len": 15,
+    "num_samples": -1,
+    "num_sentence": 3,
+    "test_ratio": 0.1,
+    "val_ratio": 0.1,
+    "shuffle": True,
+    "unk_threshold": 15
+}
 
 batch_params = {
     'batch_size': 256,
